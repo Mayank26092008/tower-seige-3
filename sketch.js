@@ -1,90 +1,117 @@
-const Engine = Matter.Engine;
-const World = Matter.World;
-const Body = Matter.Body;
-const Bodies = Matter.Bodies;
-const Constraint = Matter.Constraint;
+var Engine = Matter.Engine,
+  World = Matter.World,
+  Events = Matter.Events,
+  Bodies = Matter.Bodies;
+ 
+var particles = [];
+var plinkos = [];
+var divisions = [];
+var particles;
 
-let engine, world;
-let slingshot1, ground1, ground2, polygon, polygon_IMG;
-let score, drag, canDrag, backgroundC;
-let box1, box2, box3, box4, box5, box6, box7, box8, box9;
-
-function preload() {
-    polygon_IMG = loadImage('Hexagon.png');
-}
+var divisionHeight=300;
+var score =0;
+var count = 0;
+var gameState = "start";
 
 function setup() {
-    createCanvas(1200,400);
-    imageMode(CENTER);
-    fill(255, 255, 255);
-    backgroundC = 0;
-    getBackground();
-    score = 0;
-    canDrag = true;
-    drag = false;
-    engine = Engine.create();
-    world = engine.world;
-    ground1 = new Ground(600, height, 1200 ,20)
-    ground2 = new Ground(900, height*7/8, 600, height/4);
-    polygon = Bodies.circle(150, 200, 20, {'density' : 2.5});
-    World.add(world, polygon);
-    slingshot1 = new Slingshot(polygon, {'x' : 150, 'y' : 150});
-    box1 = new Box(650, height*3/4 - 25, 50, 50);
-    box2 = new Box(700, height*3/4 - 25, 50, 50);
-    box3 = new Box(750, height*3/4 - 25, 50, 50);
-    box4 = new Box(800, height*3/4 - 25, 50, 50);
-    box5 = new Box(850, height*3/4 - 25, 50, 50);
-    box6 = new Box(700, height*3/4 - 75, 50, 50);
-    box7 = new Box(750, height*3/4 - 75, 50, 50);
-    box8 = new Box(800, height*3/4 - 75, 50, 50);
-    box9 = new Box(750, height*3/4 - 125, 50, 50);
-}
+  createCanvas(800, 800);
+  engine = Engine.create();
+  world = engine.world;
+  ground = new Ground(width/2,height,width,20);
 
-function mouseDragged() {
-    if (mouseX - polygon.position.x < 20 && mouseX - polygon.position.x > -20 && mouseY - polygon.position.y < 20 && mouseY - polygon.position.y > -20) {
-        drag = true;
+
+   for (var k = 0; k <=width; k = k + 80) {
+     divisions.push(new Divisions(k, height-divisionHeight/2, 10, divisionHeight));
+   }
+
+    for (var j = 75; j <=width; j=j+50) {
+       plinkos.push(new Plinko(j,75));
+    }
+
+    for (var j = 50; j <=width-10; j=j+50) {
+     plinkos.push(new Plinko(j,175));
+    }
+
+     for (var j = 75; j <=width; j=j+50) {
+     plinkos.push(new Plinko(j,275));
+    }
+
+     for (var j = 50; j <=width-10; j=j+50) {
+     plinkos.push(new Plinko(j,375));
     }
 }
-
-function mouseReleased() {
-    if (drag) {
-        slingshot1.fly();
-        drag = false
-        canDrag = false;
-    }
-}
-
+ 
 function draw() {
-    background(0, 0, backgroundC);
-    Engine.update(engine);
-    text("Score = " + score, 0, 15);
-    image(polygon_IMG, polygon.position.x, polygon.position.y, 40, 40);
-    displayAllBoxes();
-    displayAllGrounds();
-    slingshot1.display();
-    if (drag && canDrag) {
-        Body.setPosition(polygon, {x : mouseX, y : mouseY});
-    }
-    if (keyCode === 32) {
-        reset();
-        keyCode = 0;
-    }
+  background("black");
+  textSize(35)
+  text("Score : "+score,20,40);
+  fill("white");
+  //text(mouseX + "," + mouseY, 20, 50);
+  textSize(35)
+  text(" 500 ", 5, 550);
+  text(" 500 ", 80, 550);
+  text(" 500 ", 160, 550);
+  text(" 500 ", 240, 550);
+  text(" 100 ", 320, 550);
+  text(" 100 ", 400, 550);
+  text(" 100 ", 480, 550);
+  text(" 200 ", 560, 550);
+  text(" 200 ", 640, 550);
+  text(" 200 ", 720, 550);
+  Engine.update(engine);
+  ground.display();
+  
+  if ( gameState =="end") {
+    
+    textSize(100);
+    text("GameOver", 150, 250);
+    //return
+  }
+
+  for (var i = 0; i < plinkos.length; i++) {
+     plinkos[i].display();  
+  }
+ 
+    if(particle!=null)
+    {
+       particle.display();
+        
+     if (particle.body.position.y>760)
+        {
+           if (particle.body.position.x < 300) 
+              {
+                  score=score+500;      
+                  particle=null;
+             if ( count>= 5) gameState ="end";                          
+              }
+
+              else if (particle.body.position.x < 600 && particle.body.position.x > 301 ) 
+              {
+                    score = score + 100;
+                    particle=null;
+                 if ( count>= 5) gameState ="end";
+
+              }
+              else if (particle.body.position.x < 900 && particle.body.position.x > 601 )
+              {
+                    score = score + 200;
+                    particle=null;
+                 if ( count>= 5)  gameState ="end";
+
+              }   }    }
+
+   for (var k = 0; k < divisions.length; k++) 
+   {
+     divisions[k].display();
+   }
+ 
 }
 
-function reset() {
-    canDrag = true;
-    slingshot1.flown = false;
-    slingshot1.chain.bodyA = polygon;
-    Body.setPosition(polygon, {'x' : 150, 'y' : 200});
-    Body.setVelocity(polygon, {'x' : 0, 'y' : 0});
-}
-
-async function getBackground() {
-    let Time = await fetch('https://worldtimeapi.org/api/timezone/Asia/Kolkata');
-    let Response = await Time.json();
-    if (Response.datetime.slice(11, 13) >= 7 && Response.datetime.slice(11, 13) <= 19) {
-        backgroundC = 100;
-    } else {
-        backgroundC = 0;
-    }
+function mousePressed()
+{
+  if(gameState!=="end")
+  {
+      count++;
+     particle=new Particle(mouseX, 10, 10, 10); 
+  }   
 }
